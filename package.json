@@ -2,7 +2,7 @@
   "name": "react-tariff-russianpost",
   "version": "1.0.0",
   "description": "Component for using API from http://tariff.russianpost.ru",
-  "main": "tariff.js",
+  "main": "tariff.jsx",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
