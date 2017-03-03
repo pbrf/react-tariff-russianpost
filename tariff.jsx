@@ -16,7 +16,8 @@ export default class Tariff extends Component {
             needed_attrs: ['weight', 'index_from', 'index_to', 'type'],
             success: false,
             counter: {},
-            obj: { "weight": 0, "index_from": 0, "index_to": 0, "type": 0 }
+            obj: { "weight": 0, "index_from": 0, "index_to": 0, "type": 0 },
+            url: 'http://beta.pbrf.ru/v1/'
         }
         this.calcPayment = this.calcPayment.bind(this);
     }
@@ -31,11 +32,11 @@ export default class Tariff extends Component {
         } else {
             data.cat = '0';
         }
-        data.Value = data.Value * 100;
-        data.sum_num = data.sum_num * 100;
+        data.Value = data.value * 100;
+        data.sum_num = data.sumNum * 100;
         data.direction = '0';
         data.service = '""';
-        fetch(url + 'utils/tariff/calc', {
+        fetch(this.state.url + 'utils/tariff/calc', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -43,15 +44,17 @@ export default class Tariff extends Component {
             },
             body: JSON.stringify(data)
         }).then((response) => {
-            if (response.paynds) {
+            return response.json();
+        }).then((json) => {
+            if (json.paynds) {
                 _this.setState({ status: 1 });
-                this.setState({ success: true });
+                _this.setState({ success: true });
                 _this.setState({
-                    paynds: response.paynds / 100,
-                    pay: response.pay / 100, valnds: response.ground.valnds / 100, cover: response.tariff[1].cover.valnds / 100
+                    paynds: json.paynds / 100,
+                    pay: json.pay / 100, valnds: json.ground.valnds / 100, cover: json.tariff[1].cover.valnds / 100
                 });
-                if (response.service) {
-                    _this.setState({ service: response.service.valnds / 100 });
+                if (json.service) {
+                    _this.setState({ service: json.service.valnds / 100 });
                 } else {
                     _this.setState({ service: 0.00 });
                 }
@@ -59,8 +62,6 @@ export default class Tariff extends Component {
             } else {
                 _this.setState({ status: 2 });
             }
-            return response;
-        }).then((json) => {
             return json;
         })
             .catch((error) => {

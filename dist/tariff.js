@@ -39,7 +39,8 @@ var Tariff = function (_Component) {
             needed_attrs: ['weight', 'index_from', 'index_to', 'type'],
             success: false,
             counter: {},
-            obj: { "weight": 0, "index_from": 0, "index_to": 0, "type": 0 }
+            obj: { "weight": 0, "index_from": 0, "index_to": 0, "type": 0 },
+            url: 'http://beta.pbrf.ru/v1/'
         };
         _this2.calcPayment = _this2.calcPayment.bind(_this2);
         return _this2;
@@ -48,8 +49,6 @@ var Tariff = function (_Component) {
     _createClass(Tariff, [{
         key: 'calcPayment',
         value: function calcPayment() {
-            var _this3 = this;
-
             var _this = this;
             var data = _this.props.data;
             if (data.sumoc !== 0 && data.sum_num !== 0) {
@@ -59,11 +58,11 @@ var Tariff = function (_Component) {
             } else {
                 data.cat = '0';
             }
-            data.Value = data.Value * 100;
-            data.sum_num = data.sum_num * 100;
+            data.Value = data.value * 100;
+            data.sum_num = data.sumNum * 100;
             data.direction = '0';
             data.service = '""';
-            fetch(url + 'utils/tariff/calc', {
+            fetch(this.state.url + 'utils/tariff/calc', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -71,23 +70,23 @@ var Tariff = function (_Component) {
                 },
                 body: JSON.stringify(data)
             }).then(function (response) {
-                if (response.paynds) {
+                return response.json();
+            }).then(function (json) {
+                if (json.paynds) {
                     _this.setState({ status: 1 });
-                    _this3.setState({ success: true });
+                    _this.setState({ success: true });
                     _this.setState({
-                        paynds: response.paynds / 100,
-                        pay: response.pay / 100, valnds: response.ground.valnds / 100, cover: response.tariff[1].cover.valnds / 100
+                        paynds: json.paynds / 100,
+                        pay: json.pay / 100, valnds: json.ground.valnds / 100, cover: json.tariff[1].cover.valnds / 100
                     });
-                    if (response.service) {
-                        _this.setState({ service: response.service.valnds / 100 });
+                    if (json.service) {
+                        _this.setState({ service: json.service.valnds / 100 });
                     } else {
                         _this.setState({ service: 0.00 });
                     }
                 } else {
                     _this.setState({ status: 2 });
                 }
-                return response;
-            }).then(function (json) {
                 return json;
             }).catch(function (error) {
                 return error;
@@ -97,24 +96,24 @@ var Tariff = function (_Component) {
     }, {
         key: 'componentWillReceiveProps',
         value: function componentWillReceiveProps(nextProps) {
-            var _this4 = this;
+            var _this3 = this;
 
             var keys = Object.keys(nextProps.data);
             var obj = this.state.obj;
             keys.forEach(function (key) {
-                if (_this4.props.data[key] !== nextProps.data[key]) {
-                    _this4.props.data[key] = nextProps.data[key];
-                    if (_this4.state.obj.hasOwnProperty(key) && _this4.state.obj[key] === 0) {
+                if (_this3.props.data[key] !== nextProps.data[key]) {
+                    _this3.props.data[key] = nextProps.data[key];
+                    if (_this3.state.obj.hasOwnProperty(key) && _this3.state.obj[key] === 0) {
                         obj[key] = 1;
-                        _this4.setState({ obj: obj });
+                        _this3.setState({ obj: obj });
                     }
-                    if (_this4.props.data[key]) {
+                    if (_this3.props.data[key]) {
 
-                        var counter = Object.keys(_this4.state.obj).map(function (item) {
+                        var counter = Object.keys(_this3.state.obj).map(function (item) {
                             return obj[item] === 1;
                         }).length;
-                        if (counter >= _this4.state.needed_attrs.length) {
-                            _this4.calcPayment();
+                        if (counter >= _this3.state.needed_attrs.length) {
+                            _this3.calcPayment();
                         }
                     }
                 }
