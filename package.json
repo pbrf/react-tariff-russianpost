@@ -1,6 +1,6 @@
 {
   "name": "react-tariff-russianpost",
-  "version": "0.0.4",
+  "version": "0.0.6",
   "description": "Component for using API from http://tariff.russianpost.ru",
   "main": "dist/tariff.js",
   "scripts": {

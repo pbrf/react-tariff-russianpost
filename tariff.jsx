@@ -1,5 +1,5 @@
-import React, { Component, PropTypes } from 'react';
-import { Row, Col } from 'react-bootstrap';
+import React, { Component } from 'react';
+import { Row, Col, Alert } from 'react-bootstrap';
 
 export default class Tariff extends Component {
 
@@ -17,7 +17,8 @@ export default class Tariff extends Component {
             success: false,
             counter: {},
             obj: { "weight": 0, "index_from": 0, "index_to": 0, "type": 0 },
-            url: 'http://beta.pbrf.ru/v1/'
+            url: 'http://beta.pbrf.ru/v1/',
+            errors: []
         }
         this.calcPayment = this.calcPayment.bind(this);
     }
@@ -61,6 +62,20 @@ export default class Tariff extends Component {
 
             } else {
                 _this.setState({ status: 2 });
+                let errorKeys = Object.keys(json);
+                let errorsArray = [];
+                _this.setState({ success: true });
+                let msg;
+                errorKeys.forEach(item=>{
+                    switch(item) {
+                        case "weight": msg = "Поле 'Масса посылки' заполнено не корректно."; errorsArray.push(msg); break;
+                        case "index_from": msg = "Поле 'Почтовый индекс' отправителя заполнено не корректно."; errorsArray.push(msg); break;
+                        case "index_to": msg = "Поле 'Почтовый индекс' получателя заполнено не корректно."; errorsArray.push(msg); break;
+                        case "sum_num": msg = "Поле 'Сумма наложенного платежа' заполнено не корректно."; errorsArray.push(msg); break;
+                        case "Value": msg = "Поле 'Сумма объявленной ценности' заполнено не корректно."; errorsArray.push(msg); break;
+                    }                   
+                });
+                this.setState({errors: errorsArray});
             }
             return json;
         })
@@ -98,7 +113,7 @@ export default class Tariff extends Component {
     render() {
         return (
             <Row style={this.state.success ? null : { display: 'none' }}>
-                <Col xs={12} md={6} mdOffset={3}>
+                <Col xs={12} md={6} mdOffset={3} sm={12} xs={12} style={this.state.status === 1 ? null : { display: 'none' }}>
                     Результат:
                 <ul>
                         <li>Почтовый сбор: {this.state.valnds} рублей(с НДС).</li>
@@ -108,6 +123,17 @@ export default class Tariff extends Component {
                         <li>Итого сумма с НДС 18%: {this.state.paynds} рублей.</li>
                     </ul>
                 </Col>
+                <Col md={6} mdOffset={3} sm={12} xs={12}>
+                 {this.state.status == 2
+                                ? <Alert bsStyle="danger" onDismiss={(e) => this.setState({ status: 0 })}>
+                                    {
+          this.state.errors.map(function(error) {
+            return <li key={error}>{error}</li>
+          })
+        }
+                                </Alert>
+                                : null}
+                                </Col>
             </Row>
         )
     }

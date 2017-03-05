@@ -14,6 +14,8 @@ var _reactBootstrap = require('react-bootstrap');
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
@@ -40,7 +42,8 @@ var Tariff = function (_Component) {
             success: false,
             counter: {},
             obj: { "weight": 0, "index_from": 0, "index_to": 0, "type": 0 },
-            url: 'http://beta.pbrf.ru/v1/'
+            url: 'http://beta.pbrf.ru/v1/',
+            errors: []
         };
         _this2.calcPayment = _this2.calcPayment.bind(_this2);
         return _this2;
@@ -49,6 +52,8 @@ var Tariff = function (_Component) {
     _createClass(Tariff, [{
         key: 'calcPayment',
         value: function calcPayment() {
+            var _this3 = this;
+
             var _this = this;
             var data = _this.props.data;
             if (data.sumoc !== 0 && data.sum_num !== 0) {
@@ -86,6 +91,25 @@ var Tariff = function (_Component) {
                     }
                 } else {
                     _this.setState({ status: 2 });
+                    var errorKeys = Object.keys(json);
+                    var errorsArray = [];
+                    _this.setState({ success: true });
+                    var msg = void 0;
+                    errorKeys.forEach(function (item) {
+                        switch (item) {
+                            case "weight":
+                                msg = "Поле 'Масса посылки' заполнено не корректно.";errorsArray.push(msg);break;
+                            case "index_from":
+                                msg = "Поле 'Почтовый индекс' отправителя заполнено не корректно.";errorsArray.push(msg);break;
+                            case "index_to":
+                                msg = "Поле 'Почтовый индекс' получателя заполнено не корректно.";errorsArray.push(msg);break;
+                            case "sum_num":
+                                msg = "Поле 'Сумма наложенного платежа' заполнено не корректно.";errorsArray.push(msg);break;
+                            case "Value":
+                                msg = "Поле 'Сумма объявленной ценности' заполнено не корректно.";errorsArray.push(msg);break;
+                        }
+                    });
+                    _this3.setState({ errors: errorsArray });
                 }
                 return json;
             }).catch(function (error) {
@@ -96,24 +120,24 @@ var Tariff = function (_Component) {
     }, {
         key: 'componentWillReceiveProps',
         value: function componentWillReceiveProps(nextProps) {
-            var _this3 = this;
+            var _this4 = this;
 
             var keys = Object.keys(nextProps.data);
             var obj = this.state.obj;
             keys.forEach(function (key) {
-                if (_this3.props.data[key] !== nextProps.data[key]) {
-                    _this3.props.data[key] = nextProps.data[key];
-                    if (_this3.state.obj.hasOwnProperty(key) && _this3.state.obj[key] === 0) {
+                if (_this4.props.data[key] !== nextProps.data[key]) {
+                    _this4.props.data[key] = nextProps.data[key];
+                    if (_this4.state.obj.hasOwnProperty(key) && _this4.state.obj[key] === 0) {
                         obj[key] = 1;
-                        _this3.setState({ obj: obj });
+                        _this4.setState({ obj: obj });
                     }
-                    if (_this3.props.data[key]) {
+                    if (_this4.props.data[key]) {
 
-                        var counter = Object.keys(_this3.state.obj).map(function (item) {
+                        var counter = Object.keys(_this4.state.obj).map(function (item) {
                             return obj[item] === 1;
                         }).length;
-                        if (counter >= _this3.state.needed_attrs.length) {
-                            _this3.calcPayment();
+                        if (counter >= _this4.state.needed_attrs.length) {
+                            _this4.calcPayment();
                         }
                     }
                 }
@@ -122,12 +146,15 @@ var Tariff = function (_Component) {
     }, {
         key: 'render',
         value: function render() {
+            var _React$createElement,
+                _this5 = this;
+
             return _react2.default.createElement(
                 _reactBootstrap.Row,
                 { style: this.state.success ? null : { display: 'none' } },
                 _react2.default.createElement(
                     _reactBootstrap.Col,
-                    { xs: 12, md: 6, mdOffset: 3 },
+                    (_React$createElement = { xs: 12, md: 6, mdOffset: 3, sm: 12 }, _defineProperty(_React$createElement, 'xs', 12), _defineProperty(_React$createElement, 'style', this.state.status === 1 ? null : { display: 'none' }), _React$createElement),
                     '\u0420\u0435\u0437\u0443\u043B\u044C\u0442\u0430\u0442:',
                     _react2.default.createElement(
                         'ul',
@@ -168,6 +195,23 @@ var Tariff = function (_Component) {
                             ' \u0440\u0443\u0431\u043B\u0435\u0439.'
                         )
                     )
+                ),
+                _react2.default.createElement(
+                    _reactBootstrap.Col,
+                    { md: 6, mdOffset: 3, sm: 12, xs: 12 },
+                    this.state.status == 2 ? _react2.default.createElement(
+                        _reactBootstrap.Alert,
+                        { bsStyle: 'danger', onDismiss: function onDismiss(e) {
+                                return _this5.setState({ status: 0 });
+                            } },
+                        this.state.errors.map(function (error) {
+                            return _react2.default.createElement(
+                                'li',
+                                { key: error },
+                                error
+                            );
+                        })
+                    ) : null
                 )
             );
         }
