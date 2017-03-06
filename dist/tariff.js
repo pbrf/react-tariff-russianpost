@@ -35,13 +35,13 @@ var Tariff = function (_Component) {
             paynds: 0,
             paymark: 0,
             cover: 0,
-            service: 0,
+            service: "",
             pay: 0,
             valnds: 0,
-            needed_attrs: ['weight', 'index_from', 'index_to', 'type'],
+            needed_attrs: ['weight', 'index_from', 'index_to', 'type', 'service'],
             success: false,
             counter: {},
-            obj: { "weight": 0, "index_from": 0, "index_to": 0, "type": 0 },
+            obj: { "weight": 0, "index_from": 0, "index_to": 0, "type": 0, 'service': 0 },
             url: 'http://beta.pbrf.ru/v1/',
             errors: []
         };
@@ -52,13 +52,11 @@ var Tariff = function (_Component) {
     _createClass(Tariff, [{
         key: 'calcPayment',
         value: function calcPayment() {
-            var _this3 = this;
-
             var _this = this;
             var data = _this.props.data;
-            if (data.sumoc !== 0 && data.sum_num !== 0) {
+            if (data.value !== 0 && data.sumNum !== 0) {
                 data.cat = '4';
-            } else if (data.sumoc !== 0 && data.sum_num === 0) {
+            } else if (data.value !== 0 && data.sumNum === 0) {
                 data.cat = '2';
             } else {
                 data.cat = '0';
@@ -66,8 +64,12 @@ var Tariff = function (_Component) {
             data.Value = data.value * 100;
             data.sum_num = data.sumNum * 100;
             data.direction = '0';
-            data.service = '""';
-            fetch(this.state.url + 'utils/tariff/calc', {
+            if (data.service !== undefined && data.service.length !== 0) {
+                data.service = data.service.join();
+            } else {
+                data.service = '""';
+            }
+            fetch(_this.state.url + 'utils/tariff/calc', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -77,13 +79,16 @@ var Tariff = function (_Component) {
             }).then(function (response) {
                 return response.json();
             }).then(function (json) {
-                if (json.paynds) {
+                if (json.hasOwnProperty("paynds")) {
                     _this.setState({ status: 1 });
                     _this.setState({ success: true });
                     _this.setState({
                         paynds: json.paynds / 100,
-                        pay: json.pay / 100, valnds: json.ground.valnds / 100, cover: json.tariff[1].cover.valnds / 100
+                        pay: json.pay / 100, valnds: json.ground.valnds / 100
                     });
+                    if (data.cat !== 0) {
+                        _this.setState({ cover: json.tariff[1].cover.valnds / 100 });
+                    }
                     if (json.service) {
                         _this.setState({ service: json.service.valnds / 100 });
                     } else {
@@ -98,7 +103,7 @@ var Tariff = function (_Component) {
                     errorKeys.forEach(function (item) {
                         switch (item) {
                             case "weight":
-                                msg = "Поле 'Масса посылки' заполнено не корректно.";errorsArray.push(msg);break;
+                                msg = "Поле 'Масса посылки' заполнено не корректно. Также, поле вес не может превышать 2000 грамм.";errorsArray.push(msg);break;
                             case "index_from":
                                 msg = "Поле 'Почтовый индекс' отправителя заполнено не корректно.";errorsArray.push(msg);break;
                             case "index_to":
@@ -109,7 +114,7 @@ var Tariff = function (_Component) {
                                 msg = "Поле 'Сумма объявленной ценности' заполнено не корректно.";errorsArray.push(msg);break;
                         }
                     });
-                    _this3.setState({ errors: errorsArray });
+                    _this.setState({ errors: errorsArray });
                 }
                 return json;
             }).catch(function (error) {
@@ -120,24 +125,24 @@ var Tariff = function (_Component) {
     }, {
         key: 'componentWillReceiveProps',
         value: function componentWillReceiveProps(nextProps) {
-            var _this4 = this;
+            var _this3 = this;
 
             var keys = Object.keys(nextProps.data);
             var obj = this.state.obj;
             keys.forEach(function (key) {
-                if (_this4.props.data[key] !== nextProps.data[key]) {
-                    _this4.props.data[key] = nextProps.data[key];
-                    if (_this4.state.obj.hasOwnProperty(key) && _this4.state.obj[key] === 0) {
+                if (_this3.props.data[key] !== nextProps.data[key]) {
+                    _this3.props.data[key] = nextProps.data[key];
+                    if (_this3.state.obj.hasOwnProperty(key) && _this3.state.obj[key] === 0) {
                         obj[key] = 1;
-                        _this4.setState({ obj: obj });
+                        _this3.setState({ obj: obj });
                     }
-                    if (_this4.props.data[key]) {
+                    if (_this3.props.data[key]) {
 
-                        var counter = Object.keys(_this4.state.obj).map(function (item) {
+                        var counter = Object.keys(_this3.state.obj).map(function (item) {
                             return obj[item] === 1;
                         }).length;
-                        if (counter >= _this4.state.needed_attrs.length) {
-                            _this4.calcPayment();
+                        if (counter >= _this3.state.needed_attrs.length - 1) {
+                            _this3.calcPayment();
                         }
                     }
                 }
@@ -147,7 +152,7 @@ var Tariff = function (_Component) {
         key: 'render',
         value: function render() {
             var _React$createElement,
-                _this5 = this;
+                _this4 = this;
 
             return _react2.default.createElement(
                 _reactBootstrap.Row,
@@ -162,7 +167,7 @@ var Tariff = function (_Component) {
                         _react2.default.createElement(
                             'li',
                             null,
-                            '\u041F\u043E\u0447\u0442\u043E\u0432\u044B\u0439 \u0441\u0431\u043E\u0440: ',
+                            '\u0421\u0443\u043C\u043C\u0430 \u043F\u0440\u0438 \u043E\u043F\u043B\u0430\u0442\u0435 \u043C\u0430\u0440\u043A\u0430\u043C\u0438: ',
                             this.state.valnds,
                             ' \u0440\u0443\u0431\u043B\u0435\u0439(\u0441 \u041D\u0414\u0421).'
                         ),
@@ -202,7 +207,7 @@ var Tariff = function (_Component) {
                     this.state.status == 2 ? _react2.default.createElement(
                         _reactBootstrap.Alert,
                         { bsStyle: 'danger', onDismiss: function onDismiss(e) {
-                                return _this5.setState({ status: 0 });
+                                return _this4.setState({ status: 0 });
                             } },
                         this.state.errors.map(function (error) {
                             return _react2.default.createElement(
