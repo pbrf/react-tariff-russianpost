@@ -14,8 +14,6 @@ var _reactBootstrap = require('react-bootstrap');
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
@@ -54,13 +52,6 @@ var Tariff = function (_Component) {
         value: function calcPayment() {
             var _this = this;
             var data = _this.props.data;
-            if (data.value !== 0 && data.sumNum !== 0) {
-                data.cat = '4';
-            } else if (data.value !== 0 && data.sumNum === 0) {
-                data.cat = '2';
-            } else {
-                data.cat = '0';
-            }
             data.Value = data.value * 100;
             data.sum_num = data.sumNum * 100;
             data.direction = '0';
@@ -93,6 +84,9 @@ var Tariff = function (_Component) {
                         _this.setState({ service: json.service.valnds / 100 });
                     } else {
                         _this.setState({ service: 0.00 });
+                    }
+                    if (json.paymark) {
+                        _this.setState({ paymark: json.service.paymark / 100 });
                     }
                 } else {
                     _this.setState({ status: 2 });
@@ -142,6 +136,13 @@ var Tariff = function (_Component) {
                             return obj[item] === 1;
                         }).length;
                         if (counter >= _this3.state.needed_attrs.length - 1) {
+                            if (_this3.props.data.value !== 0 && _this3.props.data.sumNum !== 0) {
+                                _this3.props.data.cat = '4';
+                            } else if (_this3.props.data.value !== 0 && _this3.props.data.sumNum === 0) {
+                                _this3.props.data.cat = '2';
+                            } else {
+                                _this3.props.data.cat = '0';
+                            }
                             _this3.calcPayment();
                         }
                     }
@@ -151,53 +152,69 @@ var Tariff = function (_Component) {
     }, {
         key: 'render',
         value: function render() {
-            var _React$createElement,
-                _this4 = this;
+            var _this4 = this;
 
             return _react2.default.createElement(
                 _reactBootstrap.Row,
                 { style: this.state.success ? null : { display: 'none' } },
                 _react2.default.createElement(
                     _reactBootstrap.Col,
-                    (_React$createElement = { xs: 12, md: 6, mdOffset: 3, sm: 12 }, _defineProperty(_React$createElement, 'xs', 12), _defineProperty(_React$createElement, 'style', this.state.status === 1 ? null : { display: 'none' }), _React$createElement),
-                    '\u0420\u0435\u0437\u0443\u043B\u044C\u0442\u0430\u0442:',
+                    { md: 6, mdOffset: 3, sm: 12, xs: 12, style: this.state.status === 1 ? null : { display: 'none' } },
                     _react2.default.createElement(
-                        'ul',
-                        null,
+                        _reactBootstrap.Alert,
+                        { bsStyle: 'success', onDismiss: function onDismiss(e) {
+                                return _this4.setState({ status: 0 });
+                            } },
                         _react2.default.createElement(
-                            'li',
+                            'center',
                             null,
-                            '\u0421\u0443\u043C\u043C\u0430 \u043F\u0440\u0438 \u043E\u043F\u043B\u0430\u0442\u0435 \u043C\u0430\u0440\u043A\u0430\u043C\u0438: ',
-                            this.state.valnds,
-                            ' \u0440\u0443\u0431\u043B\u0435\u0439(\u0441 \u041D\u0414\u0421).'
-                        ),
-                        _react2.default.createElement(
-                            'li',
-                            null,
-                            '\u0421\u0442\u0440\u0430\u0445\u043E\u0432\u0430\u043D\u0438\u0435: ',
-                            this.state.cover,
-                            ' \u0440\u0443\u0431\u043B\u0435\u0439(\u0441 \u041D\u0414\u0421).'
-                        ),
-                        _react2.default.createElement(
-                            'li',
-                            null,
-                            '\u0414\u043E\u043F\u043E\u043B\u043D\u0438\u0442\u0435\u043B\u044C\u043D\u044B\u0435 \u0443\u0441\u043B\u0443\u0433\u0438: ',
-                            this.state.service,
-                            ' \u0440\u0443\u0431\u043B\u0435\u0439(\u0441 \u041D\u0414\u0421).'
-                        ),
-                        _react2.default.createElement(
-                            'li',
-                            null,
-                            '\u0418\u0442\u043E\u0433\u043E \u0441\u0443\u043C\u043C\u0430 \u0431\u0435\u0437 \u041D\u0414\u0421: ',
-                            this.state.pay,
-                            ' \u0440\u0443\u0431\u043B\u0435\u0439.'
-                        ),
-                        _react2.default.createElement(
-                            'li',
-                            null,
-                            '\u0418\u0442\u043E\u0433\u043E \u0441\u0443\u043C\u043C\u0430 \u0441 \u041D\u0414\u0421 18%: ',
-                            this.state.paynds,
-                            ' \u0440\u0443\u0431\u043B\u0435\u0439.'
+                            '\u0421\u0442\u043E\u0438\u043C\u043E\u0441\u0442\u044C \u043E\u0442\u043F\u0440\u0430\u0432\u043B\u0435\u043D\u0438\u044F:',
+                            _react2.default.createElement(
+                                'ul',
+                                null,
+                                this.state.paymark === 0 ? null : _react2.default.createElement(
+                                    'li',
+                                    null,
+                                    '\u041E\u043F\u043B\u0430\u0442\u0430 \u043C\u0430\u0440\u043A\u0430\u043C\u0438: ',
+                                    this.state.paymark,
+                                    ' \u0440\u0443\u0431\u043B\u0435\u0439(\u0441 \u041D\u0414\u0421).'
+                                ),
+                                _react2.default.createElement(
+                                    'li',
+                                    null,
+                                    '\u041F\u043E\u0447\u0442\u043E\u0432\u044B\u0439 \u0441\u0431\u043E\u0440: ',
+                                    this.state.valnds,
+                                    ' \u0440\u0443\u0431\u043B\u0435\u0439(\u0441 \u041D\u0414\u0421).'
+                                ),
+                                _react2.default.createElement(
+                                    'li',
+                                    null,
+                                    '\u0421\u0442\u0440\u0430\u0445\u043E\u0432\u0430\u043D\u0438\u0435: ',
+                                    this.state.cover,
+                                    ' \u0440\u0443\u0431\u043B\u0435\u0439(\u0441 \u041D\u0414\u0421).'
+                                ),
+                                _react2.default.createElement(
+                                    'li',
+                                    null,
+                                    '\u0414\u043E\u043F\u043E\u043B\u043D\u0438\u0442\u0435\u043B\u044C\u043D\u044B\u0435 \u0443\u0441\u043B\u0443\u0433\u0438: ',
+                                    this.state.service,
+                                    ' \u0440\u0443\u0431\u043B\u0435\u0439(\u0441 \u041D\u0414\u0421).'
+                                ),
+                                _react2.default.createElement(
+                                    'li',
+                                    null,
+                                    '\u0418\u0442\u043E\u0433\u043E \u0441\u0443\u043C\u043C\u0430 \u0431\u0435\u0437 \u041D\u0414\u0421: ',
+                                    this.state.pay,
+                                    ' \u0440\u0443\u0431\u043B\u0435\u0439.'
+                                ),
+                                _react2.default.createElement(
+                                    'li',
+                                    null,
+                                    '\u0418\u0442\u043E\u0433\u043E \u0441\u0443\u043C\u043C\u0430 \u0441 \u041D\u0414\u0421 18%: ',
+                                    this.state.paynds,
+                                    ' \u0440\u0443\u0431\u043B\u0435\u0439.'
+                                )
+                            )
                         )
                     )
                 ),

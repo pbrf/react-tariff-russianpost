@@ -16,7 +16,7 @@ export default class Tariff extends Component {
             needed_attrs: ['weight', 'index_from', 'index_to', 'type', 'service'],
             success: false,
             counter: {},
-            obj: { "weight": 0, "index_from": 0, "index_to": 0, "type": 0, 'service': 0},
+            obj: { "weight": 0, "index_from": 0, "index_to": 0, "type": 0, 'service': 0 },
             url: 'http://beta.pbrf.ru/v1/',
             errors: []
         }
@@ -26,17 +26,10 @@ export default class Tariff extends Component {
     calcPayment() {
         let _this = this;
         let data = _this.props.data;
-        if (data.value !== 0 && data.sumNum !== 0) {
-            data.cat = '4';
-        } else if (data.value !== 0 && data.sumNum === 0) {
-            data.cat = '2';
-        } else {
-            data.cat = '0';
-        }
         data.Value = data.value * 100;
         data.sum_num = data.sumNum * 100;
         data.direction = '0';
-        if (data.service !== undefined && data.service.length !== 0){
+        if (data.service !== undefined && data.service.length !== 0) {
             data.service = data.service.join();
         } else {
             data.service = '""';
@@ -55,16 +48,19 @@ export default class Tariff extends Component {
                 _this.setState({ status: 1 });
                 _this.setState({ success: true });
                 _this.setState({
-                        paynds: json.paynds / 100,
-                        pay: json.pay / 100, valnds: json.ground.valnds / 100
-                    });
-                    if (data.cat !== 0){
-                        _this.setState({cover: json.tariff[1].cover.valnds / 100});
-                    }
+                    paynds: json.paynds / 100,
+                    pay: json.pay / 100, valnds: json.ground.valnds / 100
+                });
+                if (data.cat !== 0) {
+                    _this.setState({ cover: json.tariff[1].cover.valnds / 100 });
+                }
                 if (json.service) {
                     _this.setState({ service: json.service.valnds / 100 });
                 } else {
                     _this.setState({ service: 0.00 });
+                }
+                if (json.paymark) {
+                    _this.setState({ paymark: json.service.paymark / 100 });
                 }
 
             } else {
@@ -73,16 +69,16 @@ export default class Tariff extends Component {
                 let errorsArray = [];
                 _this.setState({ success: true });
                 let msg;
-                errorKeys.forEach(item=>{
-                    switch(item) {
+                errorKeys.forEach(item => {
+                    switch (item) {
                         case "weight": msg = "Поле 'Масса посылки' заполнено не корректно. Также, поле вес не может превышать 2000 грамм."; errorsArray.push(msg); break;
                         case "index_from": msg = "Поле 'Почтовый индекс' отправителя заполнено не корректно."; errorsArray.push(msg); break;
                         case "index_to": msg = "Поле 'Почтовый индекс' получателя заполнено не корректно."; errorsArray.push(msg); break;
                         case "sum_num": msg = "Поле 'Сумма наложенного платежа' заполнено не корректно."; errorsArray.push(msg); break;
                         case "Value": msg = "Поле 'Сумма объявленной ценности' заполнено не корректно."; errorsArray.push(msg); break;
-                    }                   
+                    }
                 });
-                _this.setState({errors: errorsArray});
+                _this.setState({ errors: errorsArray });
             }
             return json;
         })
@@ -108,11 +104,19 @@ export default class Tariff extends Component {
                         return obj[item] === 1
                     }).length;
                     if (counter >= this.state.needed_attrs.length - 1) {
+                        if (this.props.data.value !== 0 && this.props.data.sumNum !== 0) {
+                            this.props.data.cat = '4';
+                        } else if (this.props.data.value !== 0 && this.props.data.sumNum === 0) {
+                            this.props.data.cat = '2';
+                        } else {
+                            this.props.data.cat = '0';
+                        }
                         this.calcPayment();
                     }
                 }
             }
         });
+
     }
 
 
@@ -120,27 +124,35 @@ export default class Tariff extends Component {
     render() {
         return (
             <Row style={this.state.success ? null : { display: 'none' }}>
-                <Col xs={12} md={6} mdOffset={3} sm={12} xs={12} style={this.state.status === 1 ? null : { display: 'none' }}>
-                    Результат:
-                <ul>
-                        <li>Сумма при оплате марками: {this.state.valnds} рублей(с НДС).</li>
-                        <li>Страхование: {this.state.cover} рублей(с НДС).</li>
-                        <li>Дополнительные услуги: {this.state.service} рублей(с НДС).</li>
-                        <li>Итого сумма без НДС: {this.state.pay} рублей.</li>
-                        <li>Итого сумма с НДС 18%: {this.state.paynds} рублей.</li>
-                    </ul>
+                <Col md={6} mdOffset={3} sm={12} xs={12} style={this.state.status === 1 ? null : { display: 'none' }}>
+                    <Alert bsStyle="success" onDismiss={(e) => this.setState({ status: 0 })}>
+                    <center>
+                        Стоимость отправления:
+                            <ul>
+                                {this.state.paymark === 0
+                                    ? null
+                                    : <li>Оплата марками: {this.state.paymark} рублей(с НДС).</li>}
+                                <li>Почтовый сбор: {this.state.valnds} рублей(с НДС).</li>
+                                <li>Страхование: {this.state.cover} рублей(с НДС).</li>
+                                <li>Дополнительные услуги: {this.state.service} рублей(с НДС).</li>
+                                <li>Итого сумма без НДС: {this.state.pay} рублей.</li>
+                                <li>Итого сумма с НДС 18%: {this.state.paynds} рублей.</li>
+                            </ul>
+                        </center>
+                    </Alert>
                 </Col>
+
                 <Col md={6} mdOffset={3} sm={12} xs={12}>
-                 {this.state.status == 2
-                                ? <Alert bsStyle="danger" onDismiss={(e) => this.setState({ status: 0 })}>
-                                    {
-          this.state.errors.map(function(error) {
-            return <li key={error}>{error}</li>
-          })
-        }
-                                </Alert>
-                                : null}
-                                </Col>
+                    {this.state.status == 2
+                        ? <Alert bsStyle="danger" onDismiss={(e) => this.setState({ status: 0 })}>
+                            {
+                                this.state.errors.map(function (error) {
+                                    return <li key={error}>{error}</li>
+                                })
+                            }
+                        </Alert>
+                        : null}
+                </Col>
             </Row>
         )
     }
